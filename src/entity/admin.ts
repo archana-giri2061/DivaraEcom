@@ -12,4 +12,6 @@ export class Admin{
     Phone: number
     @Column()
     Password: string
+    @Column()
+    Role: "admin"
 }

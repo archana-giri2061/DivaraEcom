@@ -12,5 +12,6 @@ export class User{
     Email: number
     @Column()
     Address: string
-    
+    @Column()
+    Password: string
 }
