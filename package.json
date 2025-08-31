@@ -1,0 +1,38 @@
+{
+  "name": "divaraecom",
+  "version": "1.0.0",
+  "description": "Divara website details",
+  "main": "index.js",
+  "scripts": {
+    "start": "nodemon src/app.ts",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/archana-giri2061/DivaraEcom.git"
+  },
+  "author": "archana Giri",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/archana-giri2061/DivaraEcom/issues"
+  },
+  "homepage": "https://github.com/archana-giri2061/DivaraEcom#readme",
+  "keywords": [],
+  "devDependencies": {
+    "@types/express": "^5.0.3",
+    "@types/node": "^24.3.0",
+    "eslint": "^9.34.0",
+    "nodemon": "^3.1.10",
+    "typescript": "^5.9.2"
+  },
+  "dependencies": {
+    "@types/mysql": "^2.15.27",
+    "aggregate-error": "^5.0.0",
+    "dotenv": "^17.2.1",
+    "express": "^5.1.0",
+    "mysql": "^2.18.1",
+    "mysql2": "^3.14.3",
+    "reflect-metadata": "^0.2.2",
+    "typeorm": "^0.3.26"
+  }
+}
