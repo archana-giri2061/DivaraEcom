@@ -18,7 +18,7 @@ export const register = async (req: Request, res: Response) => {
       const adminRepo = AppDataSource.getRepository(Admin);
       const newAdmin = adminRepo.create({
         FullName: name,
-        email: email,
+        Email: email,
         Password: hashedPassword,
         Role: "admin",
         Phone: phone
@@ -44,3 +44,31 @@ export const register = async (req: Request, res: Response) => {
     res.status(500).json({ msg: "Server error" });
   }
 };
+
+export const login = async (req: Request, res: Response) =>{
+    try{
+        const{Email, password} = req.body;
+        
+        const userRepo = AppDataSource.getRepository(User);
+        const adminRepo = AppDataSource.getRepository(Admin);
+        const user = await userRepo.findOneBy ({Email});
+        const admin = await adminRepo.findOneBy({Email});
+        if(!user){
+            return res.status(404).json({message: "This user not found!"});
+        }
+        if(!admin){
+            return res.status(404).json({message: "This admin not registered"});
+        }
+
+        const userMatch = await bcrypt.compare(password, user.Password);
+        const adminMatch = await bcrypt.compare(password, admin.Password);
+        if(!userMatch){
+            return res.status(401).json({message: "Incorret password!!"})
+        }
+        if(!adminMatch){
+            return res.status(401).json({message: "Incorrect password"});
+        }
+    }catch(error){
+        res.status(500).json({message: "login Failed", error})
+    }
+}

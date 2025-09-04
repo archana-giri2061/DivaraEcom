@@ -2,12 +2,12 @@ import {Entity, Column, PrimaryGeneratedColumn} from "typeorm"
 
 @Entity()
 export class Admin{
-    @PrimaryGeneratedColumn()
+    @PrimaryGeneratedColumn("increment")
     AdminId: number
     @Column()
     FullName: string
     @Column()
-    email: string
+    Email: string
     @Column()
     Phone: number
     @Column()
