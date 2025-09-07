@@ -1,17 +1,23 @@
-import {Entity, PrimaryGeneratedColumn, Column} from "typeorm";
+import { Col } from "sequelize/types/utils";
+import {Entity, PrimaryGeneratedColumn, Column, CreateDateColumn} from "typeorm";
 
 @Entity()
 export class User{
     @PrimaryGeneratedColumn("increment")
     userId: number
     @Column()
-    fullName: string
+    userName: string
+    @Column({unique: true})
+    email: string
     @Column()
-    PhoneNumber: number
+    password: string
     @Column()
-    Email: number
+    phone: number
     @Column()
-    Address: string
-    @Column()
-    Password: string
+    role: "customer"
+    @CreateDateColumn()
+    createdAT: Date;
+    @CreateDateColumn()
+    updatedAT: Date;
+  static email: any;
 }

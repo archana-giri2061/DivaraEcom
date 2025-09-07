@@ -1,74 +1,120 @@
 import type { Request, Response } from "express";
 import bcrypt from "bcryptjs";
 import {User} from "../entity/user";
-import {Admin} from "../entity/admin";
 import { AppDataSource } from "../database";
+import jwt from "jsonwebtoken";
+import dotenv from "dotenv";
 
+dotenv.config();
 export const register = async (req: Request, res: Response) => {
   try {
-    const { name, email, password,phone, address, role } = req.body;
+    const{userName, email, password, phone, role}= req.body;
+    console.log(req.body);
 
-    if (!name || !email || !password) {
-      return res.status(400).json({ msg: "Missing required fields" });
+    if(!userName || !email || !password|| !phone|| !role){
+      return res.status(400).json({message: "All fields required"})
     }
+    const userRepo = AppDataSource.getRepository("User");
+    const existingUser = await userRepo.findOneBy({email})
 
-    const hashedPassword = await bcrypt.hash(password, 10);
-
-    if (role === "admin") {
-      const adminRepo = AppDataSource.getRepository(Admin);
-      const newAdmin = adminRepo.create({
-        FullName: name,
-        Email: email,
-        Password: hashedPassword,
-        Role: "admin",
-        Phone: phone
-      });
-      await adminRepo.save(newAdmin);
-      return res.status(201).json({ msg: "Admin registered successfully" });
-    } 
-    
-    else {
-      const userRepo = AppDataSource.getRepository(User);
-      const newUser = userRepo.create({
-        fullName: name,
-        Email: email,
-        Password: hashedPassword,
-        Address: address,
-        PhoneNumber: phone
-      });
-      await userRepo.save(newUser);
-      return res.status(201).json({ msg: "User registered successfully" });
+    if(existingUser){
+      return res.status(400).json({message: "This email is already used"})
     }
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ msg: "Server error" });
-  }
-};
+    const hassPassword = await bcrypt.hash(password, 10);
+    const newUser = new User();
+    newUser.userName = userName;
+    newUser.email = email;
+    newUser.password = hassPassword;
+    newUser.phone = phone;
+    newUser.role = role;
+
+    await userRepo.save(newUser);
+    return res.status(200).json({message: "This user registered successfully."})
+}catch(err){
+    res.status(500).json({message: "Registration failed", err})
+}
+}
 
 export const login = async (req: Request, res: Response) =>{
     try{
-        const{Email, password} = req.body;
-        
-        const userRepo = AppDataSource.getRepository(User);
-        const adminRepo = AppDataSource.getRepository(Admin);
-        const user = await userRepo.findOneBy ({Email});
-        const admin = await adminRepo.findOneBy({Email});
-        if(!user){
-            return res.status(404).json({message: "This user not found!"});
-        }
-        if(!admin){
-            return res.status(404).json({message: "This admin not registered"});
-        }
+      const {email, password} = req.body;
+      console.log(req.body);
+      if(!email || !password){
+        return res.status(400).json({message: "Please fill all the fields"})
+      }
+      const userRepo = AppDataSource.getRepository("User")
+      const user = await userRepo.findOneBy({email})
 
-        const userMatch = await bcrypt.compare(password, user.Password);
-        const adminMatch = await bcrypt.compare(password, admin.Password);
-        if(!userMatch){
-            return res.status(401).json({message: "Incorret password!!"})
-        }
-        if(!adminMatch){
-            return res.status(401).json({message: "Incorrect password"});
-        }
+      if(!user){
+        return res.status(400).json({message: "This user is not found"})
+      }
+      const match = await bcrypt.compare(password, user.password);
+      if(!match){
+        return res.status(400).json({message: "Please fill correct password"})
+      }  
+      const access_token = jwt.sign({
+        email: user.email},
+        process.env.ACCESS_TOKEN,
+        {expiresIn: '1m'
+      });
+      const refresh_token = jwt.sign({
+        email: user.email,},
+        process.env.REFRESH_TOKEN,
+        {expiresIn: '1d'}
+      );
+      res.cookie('jwt', refresh_token, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "strict",
+        maxAge: 7*24*60*60*1000,
+      })
+      res.json({access_token})
+      res.status(200).json({message: "Login successfully!"})
     }catch(error){
-        res.status(500).json({message: "login Failed", error})
+      res.status(500).json({message: "login failed", error})
     }
 }
+export const refresh = async (req:Request, res:Response)=>{
+  if(req.cookies?.jwt){
+    const refreshToken = req.cookies.jwt;
+
+    jwt.verify(refreshToken, process.env.REFRESH_TOKEN,
+      (err,decoded)=>{
+        if(err){
+          return res.status(400).json({Message: "Unathorized token"})
+        }else{
+          const access_token = jwt.sign({
+            email: User.email},
+            process.env.ACCESS_TOKEN,{
+              expiresIn: '10m'
+          });
+          return res.json({access_token})
+        }
+  })
+  }else{
+    return res.status(500).json({message: "Refreshtoken incorrect"})
+  }
+}
+
+// export const login = async (req: Request, res: Response) =>{
+//     try{
+//       const {email, password} = req.body;
+//       console.log(req.body);
+//       if(!email || !password){
+//         return res.status(400).json({message: "Please fill all the fields"})
+//       }
+//       const userRepo = AppDataSource.getRepository("User")
+//       const user = await userRepo.findOneBy({email})
+
+//       if(!user){
+//         return res.status(400).json({message: "This user is not found"})
+//       }
+//       const match = await bcrypt.compare(password, user.password);
+//       if(!match){
+//         return res.status(400).json({message: "Please fill correct password"})
+//       }  
+//       res.status(200).json({message: "Login successfully!"})
+//     }catch(error){
+//       res.status(500).json({message: "login failed", error})
+//     }
+// }
