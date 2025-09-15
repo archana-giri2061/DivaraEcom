@@ -22,7 +22,7 @@ export const register = async (req: Request, res: Response) => {
     }
     const hassPassword = await bcrypt.hash(password, 10);
     const newUser = new User();
-    newUser.userName = userName;
+    newUser.name = userName;
     newUser.email = email;
     newUser.password = hassPassword;
     newUser.phone = phone;
@@ -74,27 +74,31 @@ export const login = async (req: Request, res: Response) =>{
       res.status(500).json({message: "login failed", error})
     }
 }
-export const refresh = async (req:Request, res:Response)=>{
-  if(req.cookies?.jwt){
+export const refresh = async (req: Request, res: Response) => {
+  try {
+    if (!req.cookies?.jwt) {
+      return res.status(401).json({ message: "Refresh token missing" });
+    }
+
     const refreshToken = req.cookies.jwt;
 
-    jwt.verify(refreshToken, process.env.REFRESH_TOKEN,
-      (err,decoded)=>{
-        if(err){
-          return res.status(400).json({Message: "Unathorized token"})
-        }else{
-          const access_token = jwt.sign({
-            email: User.email},
-            process.env.ACCESS_TOKEN,{
-              expiresIn: '10m'
-          });
-          return res.json({access_token})
-        }
-  })
-  }else{
-    return res.status(500).json({message: "Refreshtoken incorrect"})
+    jwt.verify(refreshToken, process.env.REFRESH_TOKEN as string, (err: any, decoded: any) => {
+      if (err) {
+        return res.status(403).json({ message: "Unauthorized or expired refresh token" });
+      }
+
+      const access_token = jwt.sign(
+        { email: decoded.email },
+        process.env.ACCESS_TOKEN as string,
+        { expiresIn: "10m" }
+      );
+
+      return res.json({ access_token });
+    });
+  } catch (error) {
+    return res.status(500).json({ message: "Refresh token failed", error });
   }
-}
+};
 
 // export const login = async (req: Request, res: Response) =>{
 //     try{

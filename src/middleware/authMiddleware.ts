@@ -1,14 +1,27 @@
 import { Request, Response, NextFunction } from "express";
-import {cookieParser} from 'cookie-parser';
-import jwt from "jsonwebtoken";
-export const authenticationMiddleware = async (req: Request, res: Response, next: NextFunction)=>{
-    const token = req.cookies.access_token;
-    if(!token){
-        return res.status(400).json({message: "Incorrect token"})
-    }
-    try{
-        const data = jwt.verify(token, "YOUR_SECRET_KEY");
-    }catch{
-        return res.status(400).json({message: ""})
-    }
+import { verifyAccessToken } from "../utils/jwt";
+
+export interface AuthRequest extends Request {
+  user?: any;
+}
+
+export function authenticateJWT(req: AuthRequest, res: Response, next: NextFunction) {
+  const authHeader = req.headers.authorization;
+  if (!authHeader) return res.status(401).json({ message: "No token provided" });
+  const token = authHeader.split(" ")[1];
+  try {
+    const payload = verifyAccessToken(token) as any;
+    req.user = payload;
+    next();
+  } catch (err) {
+    return res.status(401).json({ message: "Invalid or expired token" });
+  }
+}
+
+export function authorizeRoles(...roles: string[]) {
+  return (req: AuthRequest, res: Response, next: NextFunction) => {
+    if (!req.user) return res.status(401).json({ message: "Not authenticated" });
+    if (!roles.includes(req.user.role)) return res.status(403).json({ message: "Forbidden" });
+    next();
+  };
 }

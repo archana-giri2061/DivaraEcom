@@ -9,5 +9,4 @@ export class Wishlist{
     userId: User
     @ManyToOne(()=>Product, product=> product.productId)
     productId: Product
-
 }

@@ -1,17 +1,16 @@
 import "reflect-metadata"
 import {DataSource} from "typeorm"
-import{User} from "./entity/user"
 import dotenv from "dotenv";
-import { Product } from "./entity/product";
-import { Order } from "./entity/order";
-import { Cart } from "./entity/cart";
-import { CartItem } from "./entity/cartItem";
-import { Category } from "./entity/category";
-import { OrderItems } from "./entity/orderItem";
-import { Payment } from "./entity/payment";
-import { ProductImage } from "./entity/productImage";
-import { Review } from "./entity/review";
+import { User } from "./entity/user";
 import { Wishlist } from "./entity/wishlist";
+import { Review } from "./entity/review";
+import { ProductImage } from "./entity/productImage";
+import { Product } from "./entity/product";
+import { Payment } from "./entity/payment";
+import { OrderItems } from "./entity/orderItem";
+import { Order } from "./entity/order";
+import { Category } from "./entity/category";
+import { CartItem } from "./entity/cartItem";
 
 dotenv.config();
 
@@ -24,5 +23,5 @@ export const AppDataSource = new DataSource({
     database: process.env.DB_NAME,
     synchronize: true,
     logging: false,
-    entities:[User,Product,Order, Cart, CartItem, Category, OrderItems, Payment, ProductImage, Review, Wishlist]
+    entities:[User,Wishlist, Review, ProductImage, Product, Payment, OrderItems, Order, Category, CartItem ]
 })

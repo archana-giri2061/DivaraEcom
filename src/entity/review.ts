@@ -1,18 +1,22 @@
-import { Column, ManyToMany, PrimaryGeneratedColumn } from "typeorm";
+import { Entity, PrimaryGeneratedColumn, ManyToOne, Column, CreateDateColumn } from "typeorm";
 import { Product } from "./product";
 import { User } from "./user";
 
-export class Review{
-    @PrimaryGeneratedColumn()
-    reviewId: number
-    @ManyToMany(()=>Product, product=>product.productId)
-    productId:Product
-    @ManyToMany(()=>User, user=>user.userId)
-    userId: User
-    @Column()
-    rating: String
-    @Column()
-    comment: string
-    @Column({nullable: true})
-    createdAt: Date
-}   
+@Entity()
+export class Review {
+  @PrimaryGeneratedColumn()
+  reviewId: number;
+  @ManyToOne(() => Product, (product) => product.reviews, { eager: true })
+  product: Product;
+  @ManyToOne(() => User, (user) => user.reviews, { eager: true })
+  user: User;
+
+  @Column({ type: "int" })
+  rating: number;
+
+  @Column({ type: "text", nullable: true })
+  comment: string;
+
+  @CreateDateColumn()
+  createdAt: Date;
+}

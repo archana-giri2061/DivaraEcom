@@ -1,13 +1,17 @@
-import { Column, ManyToOne, NumericType, OneToOne, PrimaryGeneratedColumn } from "typeorm";
-import{Cart} from './cart';
+import { Entity, PrimaryGeneratedColumn, ManyToOne, Column } from "typeorm";
+import { Cart } from "./cart";
 import { Product } from "./product";
-export class CartItem{
-    @PrimaryGeneratedColumn()
-    cartItemId: Number
-    @ManyToOne(()=> Cart, (cart)=> cart.cartId)
-    cartId: Cart[]
-    @OneToOne(()=>Product, product=>product.productId)
-    productId: Product[]
-    @Column()
-    quantity: number;
+
+@Entity()
+export class CartItem {
+  @PrimaryGeneratedColumn()
+  cartItemId: number;
+  @ManyToOne(() => Cart, (cart) => cart.items)
+  cart: Cart;
+  @ManyToOne(() => Product, (product) => product.cartItems)
+  product: Product;
+  @Column({ default: 1 })
+  quantity: number;
+  @Column("decimal", { precision: 10, scale: 2 })
+  price: number;
 }
